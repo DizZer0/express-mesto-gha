@@ -21,3 +21,20 @@ module.exports.createUser = (req, res) => {
     .then(user => res.send({ data: user }))
     .catch(err => res.status(500).send({message: 'Произошла ошибка'}))
 }
+
+module.exports.updateProfile = (req, res) => {
+  const {name, about } = req.body
+
+  User.findByIdAndUpdate(req.user._id, { name: name, about: about }, { new: true })
+    .then(user => res.send({ data: user }))
+    .catch(err => res.status(500).send({message: 'Произошла ошибка'}))
+}
+
+module.exports.updateAvatar = (req, res) => {
+  console.log(req.body)
+  const { avatar } = req.body
+
+  User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true })
+    .then(user => res.send({ data: user }))
+    .catch(err => res.status(500).send({message: 'Произошла ошибка'}))
+}
