@@ -5,23 +5,19 @@ module.exports.getAllUsers = (req, res) => {
     .then(users => res.send( users ))
     .catch(err => res.status(500).send({message: 'Произошла ошибка'}))
 }
-/*
+
 module.exports.getByIdUser = (req, res) => {
-  User.findById(req.params.id)
-    .then(user => res.send({ data: user}))
-    .catch(() => res.status(404).send({message: 'Пользователь не найден'}))
-}
-*/
-module.exports.getByIdUser = (req, res) => {
-  User.findById(req.params.id)
+
+  User.findById(req.params.userId)
     .then(user => {
+      console.log(user)
       if(user) {
         res.send({ data: user});
         return;
       }
       res.status(400).send({message: 'Пользователь не найден'})
     })
-    .catch(() => res.status(500).send({message: 'Произошла ошибка'}))
+    .catch(err => res.status(404).send({message: 'Произошла ошибка'}))
 }
 
 module.exports.createUser = (req, res) => {
@@ -46,7 +42,6 @@ module.exports.updateProfile = (req, res) => {
 }
 
 module.exports.updateAvatar = (req, res) => {
-  console.log(req.body)
   const { avatar } = req.body
 
   User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true })
