@@ -15,9 +15,9 @@ module.exports.getByIdUser = (req, res) => {
         res.send({ data: user});
         return;
       }
-      res.status(400).send({message: 'Пользователь не найден'})
+      res.status(404).send({message: 'Пользователь не найден'})
     })
-    .catch(err => res.status(404).send({message: 'Произошла ошибка'}))
+    .catch(err => res.status(400).send({message: 'Произошла ошибка'}))
 }
 
 module.exports.createUser = (req, res) => {
@@ -29,16 +29,26 @@ module.exports.createUser = (req, res) => {
 }
 
 module.exports.updateProfile = (req, res) => {
-  const {name, about } = req.body
+  let { name, about } = req.body
   User.findByIdAndUpdate(req.user._id, { name: name, about: about }, { new: true })
     .then(user => {
+      if(name === undefined) {
+        name = ''
+      }
+      if(about === undefined) {
+        about = ''
+      }
       if(name.length > 2 && 30 > name.length && about.length > 2 && 30 > about.length) {
         res.send( user );
         return;
       }
+
       res.status(400).send({message: 'переданы некорректные данные'})
     })
-    .catch(() => res.status(500).send({message: 'Произошла ошибка'}))
+    .catch(() => {
+      console.log('ff')
+      res.status(500).send({message: 'Произошла ошибка'})
+    })
 }
 
 module.exports.updateAvatar = (req, res) => {
