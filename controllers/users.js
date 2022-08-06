@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const ValidationError = require('../errors/ValidationError')
+const NoDataFound = require('../errors/NoDataFound')
 
 module.exports.getAllUsers = (req, res, next) => {
   User.find({})
@@ -15,7 +17,7 @@ module.exports.getByIdUser = (req, res, next) => {
         res.send({ data: user});
         return;
       } else {
-        res.status(404).send({message: 'Пользователь не найден'})
+        next(new NoDataFound('Пользователь с таким id не найден'))
       }
     })
     .catch(() => {
