@@ -53,7 +53,7 @@ module.exports.updateProfile = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
       } else {
         next({ message: 'Произошла ошибка' });
