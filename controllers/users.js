@@ -1,60 +1,76 @@
 const User = require('../models/user');
+const ValidationError = require('../errors/ValidationError');
+const NoDataFound = require('../errors/NoDataFound');
 
-module.exports.getAllUsers = (req, res) => {
+module.exports.getAllUsers = (req, res, next) => {
   User.find({})
-    .then(users => res.send( users ))
-    .catch(err => res.status(500).send({message: 'Произошла ошибка'}))
-}
+    .then((users) => res.send(users))
+    .catch(() => next({ message: 'Произошла ошибка' }));
+};
 
-module.exports.getByIdUser = (req, res) => {
-
+module.exports.getByIdUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then(user => {
-      console.log(user)
-      if(user) {
-        res.send({ data: user});
-        return;
+    .then((user) => {
+      if (user) {
+        res.send({ data: user });
+      } else {
+        next(new NoDataFound('Пользователь с таким id не найден'));
       }
-      res.status(404).send({message: 'Пользователь не найден'})
     })
-    .catch(err => res.status(400).send({message: 'Произошла ошибка'}))
-}
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Невалидный id'));
+      } else {
+        next({ message: 'Произошла ошибка' });
+      }
+    });
+};
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
 
-  User.create({name, about, avatar})
-    .then(user => res.send( user ))
-    .catch(() => res.status(400).send({message: 'переданы некорректные данные'}))
-}
+  User.create({ name, about, avatar })
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные'));
+      } else {
+        next({ message: 'Произошла ошибка' });
+      }
+    });
+};
 
-module.exports.updateProfile = (req, res) => {
-  let { name, about } = req.body
-  User.findByIdAndUpdate(req.user._id, { name: name, about: about }, { new: true })
-    .then(user => {
-      if(name === undefined) {
-        name = ''
+module.exports.updateProfile = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name: name, about: about },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      if (name.length > 2 && name.length < 30 && about.length > 2 && about.length < 30) {
+        res.send(user);
       }
-      if(about === undefined) {
-        about = ''
-      }
-      if(name.length > 2 && 30 > name.length && about.length > 2 && 30 > about.length) {
-        res.send( user );
-        return;
-      }
-
-      res.status(400).send({message: 'переданы некорректные данные'})
     })
-    .catch(() => {
-      console.log('ff')
-      res.status(500).send({message: 'Произошла ошибка'})
-    })
-}
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные'));
+      } else {
+        next({ message: 'Произошла ошибка' });
+      }
+    });
+};
 
-module.exports.updateAvatar = (req, res) => {
-  const { avatar } = req.body
+module.exports.updateAvatar = (req, res, next) => {
+  const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true })
-    .then(user => res.send( user ))
-    .catch(() => res.status(400).send({message: 'переданы некорректные данные'}))
-}
+  User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true, runValidators: true })
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Некорректные данные'));
+      } else {
+        next({ message: 'Произошла ошибка' });
+      }
+    });
+};
