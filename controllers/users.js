@@ -32,7 +32,7 @@ module.exports.createUser = (req, res, next) => {
   User.create({ name, about, avatar })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
       } else {
         next({ message: 'Произошла ошибка' });

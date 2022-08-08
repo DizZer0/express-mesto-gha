@@ -19,8 +19,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use('/', userRouter);
 app.use('/', cardRouter);
-app.use((req, res, next) => next(new NoDataFound('Неправильный маршрут')));
 app.use(errHandler);
+app.use((req, res, next) => next(new NoDataFound('Неправильный маршрут')));
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {});
 
