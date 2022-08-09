@@ -47,11 +47,7 @@ module.exports.updateProfile = (req, res, next) => {
     { name: name, about: about },
     { new: true, runValidators: true },
   )
-    .then((user) => {
-      if (name.length > 2 && name.length < 30 && about.length > 2 && about.length < 30) {
-        res.send(user);
-      }
-    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
@@ -67,7 +63,7 @@ module.exports.updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true, runValidators: true })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
       } else {
         next({ message: 'Произошла ошибка' });
