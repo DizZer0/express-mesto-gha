@@ -5,6 +5,7 @@ const User = require('../models/user');
 const ValidationError = require('../errors/ValidationError');
 const NoDataFound = require('../errors/NoDataFound');
 const Conflict = require('../errors/Conflict');
+const Unauthorized = require('../errors/Unauthorized');
 
 module.exports.getAllUsers = (req, res, next) => {
   User.find({})
@@ -61,7 +62,13 @@ module.exports.createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.send(user))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+      _id: user._id,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
@@ -87,6 +94,8 @@ module.exports.login = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные'));
+      } else if (err.statusCode === 401) {
+        next(new Unauthorized('Неправильные почта или пароль'));
       } else {
         next({ message: 'Произошла ошибка' });
       }
@@ -96,7 +105,7 @@ module.exports.login = (req, res, next) => {
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
-    req.user._id,
+    req.user,
     { name: name, about: about },
     { new: true, runValidators: true },
   )
@@ -113,7 +122,7 @@ module.exports.updateProfile = (req, res, next) => {
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user, { avatar: avatar }, { new: true, runValidators: true })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
