@@ -15,16 +15,15 @@ module.exports.getAllUsers = (req, res, next) => {
 
 module.exports.getByIdUser = (req, res, next) => {
   User.findById(req.params.userId)
+    .orFail(new Error('noDataFound'))
     .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        next(new NoDataFound('Пользователь с таким id не найден'));
-      }
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Невалидный id'));
+      } else if (err.message === 'noDataFound') {
+        next(new NoDataFound('Пользователь с таким id не найден'));
       } else {
         next({ message: 'Произошла ошибка' });
       }
